@@ -1,0 +1,18 @@
+display_name: "Llama 3.3 70B with Sandwich guardrails"
+description: "Upgraded to Meta Llama 3.3 70B Instruct (higher precision, better safety) + sandwich guardrails. Hypothesis: larger model = better reasoning, improved jailbreak resistance, at the cost of latency."
+model:
+  name: meta-llama/Llama-3.3-70B-Instruct
+  temperature: 0.0
+system_prompt: prompts/v2_explicit_refusal.txt
+guardrail:
+  type: sandwich
+  input_classifier:
+    model:
+      name: meta-llama/Llama-3.3-70B-Instruct
+      temperature: 0.0
+    prompt: prompts/classifier_input.txt
+  output_validator:
+    model:
+      name: meta-llama/Llama-3.3-70B-Instruct
+      temperature: 0.0
+    prompt: prompts/classifier_output.txt

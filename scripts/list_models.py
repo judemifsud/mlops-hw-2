@@ -6,10 +6,12 @@ key value is never logged.
 
 Usage:
     python scripts/list_models.py
+    python scripts/list_models.py --verbose  # show pricing info
 """
 
 from __future__ import annotations
 
+import argparse
 import os
 import pathlib
 import sys
@@ -41,6 +43,15 @@ def load_key() -> str:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--verbose",
+        "-v",
+        action="store_true",
+        help="Show pricing info for each model",
+    )
+    args = parser.parse_args()
+
     key = load_key()
     base_url = os.environ.get(
         "NEBIUS_BASE_URL", "https://api.tokenfactory.nebius.com/v1/"
@@ -60,8 +71,19 @@ def main() -> None:
         print(f"models.list failed: {type(exc).__name__}: {exc}", file=sys.stderr)
         sys.exit(1)
 
+    if args.verbose:
+        print("Available models with pricing:")
+        print(f"{'Model ID':<50} {'Input (per 1K tokens)':<20} {'Output (per 1K tokens)':<20}")
+        print("-" * 90)
+    
     for m in page.data:
-        print(m.id)
+        if args.verbose:
+            # Try to extract pricing info from model object
+            input_price = getattr(m, "pricing", {}).get("prompt", "N/A") if hasattr(m, "pricing") else "N/A"
+            output_price = getattr(m, "pricing", {}).get("completion", "N/A") if hasattr(m, "pricing") else "N/A"
+            print(f"{m.id:<50} {str(input_price):<20} {str(output_price):<20}")
+        else:
+            print(m.id)
 
 
 if __name__ == "__main__":
